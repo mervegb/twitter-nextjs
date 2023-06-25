@@ -5,7 +5,9 @@ import { authOptions } from '@/pages/api/auth/[...nextauth]';
 import { getServerSession } from 'next-auth';
 
 const serverAuth = async (req: NextApiRequest, res: NextApiResponse) => {
-  const session = await getServerSession(req, res, authOptions);
+  const session = await getServerSession(authOptions);
+
+  console.log("mero session ",session)
 
   if (!session?.user?.email) {
     throw new Error('Not signed in');
