@@ -1,10 +1,13 @@
-import useCurrentUser from "@/hooks/useCurrentUser";
-import useUser from "@/hooks/useUser";
-import { format } from "date-fns";
 import { useMemo } from "react";
 import { BiCalendar } from "react-icons/bi";
-import Button from "../Button";
+import { format } from "date-fns";
+
+import useCurrentUser from "@/hooks/useCurrentUser";
+import useUser from "@/hooks/useUser";
+import useFollow from "@/hooks/useFollow";
 import useEditModal from "@/hooks/useEditModal";
+
+import Button from "../Button";
 
 interface UserBioProps {
   userId: string;
@@ -12,11 +15,17 @@ interface UserBioProps {
 
 const UserBio: React.FC<UserBioProps> = ({ userId }) => {
   const { data: currentUser } = useCurrentUser();
-  const { data: fetchedUser } = useUser(userId as string);
+  const { data: fetchedUser } = useUser(userId);
+
   const editModal = useEditModal();
 
+  const { isFollowing, toggleFollow } = useFollow(userId);
+
   const createdAt = useMemo(() => {
-    if (!fetchedUser?.createdAt) return "";
+    if (!fetchedUser?.createdAt) {
+      return null;
+    }
+
     return format(new Date(fetchedUser.createdAt), "MMMM yyyy");
   }, [fetchedUser?.createdAt]);
 
@@ -26,7 +35,12 @@ const UserBio: React.FC<UserBioProps> = ({ userId }) => {
         {currentUser?.id === userId ? (
           <Button secondary label="Edit" onClick={editModal.onOpen} />
         ) : (
-          <Button onClick={() => {}} label="Follow" secondary />
+          <Button
+            onClick={toggleFollow}
+            label={isFollowing ? "Unfollow" : "Follow"}
+            secondary={!isFollowing}
+            outline={isFollowing}
+          />
         )}
       </div>
       <div className="mt-8 px-4">
@@ -45,7 +59,8 @@ const UserBio: React.FC<UserBioProps> = ({ userId }) => {
               items-center 
               gap-2 
               mt-4 
-              text-neutral-500"
+              text-neutral-500
+          "
           >
             <BiCalendar size={24} />
             <p>Joined {createdAt}</p>
