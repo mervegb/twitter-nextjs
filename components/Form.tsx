@@ -1,12 +1,15 @@
-import useCurrentUser from "@/hooks/useCurrentUser";
-import useLoginModal from "@/hooks/useLoginModal";
-import usePosts from "@/hooks/usePosts";
-import useRegisterModal from "@/hooks/useRegisterModal";
-import { useCallback, useState } from "react";
-import Button from "./Button";
-import Avatar from "./Avatar";
-import { toast } from "react-hot-toast";
 import axios from "axios";
+import { useCallback, useState } from "react";
+import { toast } from "react-hot-toast";
+
+import useLoginModal from "@/hooks/useLoginModal";
+import useRegisterModal from "@/hooks/useRegisterModal";
+import useCurrentUser from "@/hooks/useCurrentUser";
+import usePosts from "@/hooks/usePosts";
+import usePost from "@/hooks/usePost";
+
+import Avatar from "./Avatar";
+import Button from "./Button";
 
 interface FormProps {
   placeholder: string;
@@ -19,7 +22,8 @@ const Form: React.FC<FormProps> = ({ placeholder, isComment, postId }) => {
   const loginModal = useLoginModal();
 
   const { data: currentUser } = useCurrentUser();
-  const { mutate: mutatePosts } = usePosts(postId as string);
+  const { mutate: mutatePosts } = usePosts();
+  const { mutate: mutatePost } = usePost(postId as string);
 
   const [body, setBody] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -32,15 +36,16 @@ const Form: React.FC<FormProps> = ({ placeholder, isComment, postId }) => {
 
       await axios.post(url, { body });
 
-      toast.success("Tweeted successfully");
+      toast.success("Tweet created");
       setBody("");
-      mutatePosts(); // refetch posts
-    } catch (err) {
+      mutatePosts();
+      mutatePost();
+    } catch (error) {
       toast.error("Something went wrong");
     } finally {
       setIsLoading(false);
     }
-  }, [body, mutatePosts, isComment, postId]);
+  }, [body, mutatePosts, isComment, postId, mutatePost]);
 
   return (
     <div className="border-b-[1px] border-neutral-800 px-5 py-2">
@@ -55,28 +60,28 @@ const Form: React.FC<FormProps> = ({ placeholder, isComment, postId }) => {
               onChange={(event) => setBody(event.target.value)}
               value={body}
               className="
-              disabled:opacity-80
-              peer
-              resize-none 
-              mt-3 
-              w-full 
-              bg-black 
-              ring-0 
-              outline-none 
-              text-[20px] 
-              placeholder-neutral-500 
-              text-white
-            "
+                disabled:opacity-80
+                peer
+                resize-none 
+                mt-3 
+                w-full 
+                bg-black 
+                ring-0 
+                outline-none 
+                text-[20px] 
+                placeholder-neutral-500 
+                text-white
+              "
               placeholder={placeholder}
             ></textarea>
             <hr
               className="
-              opacity-0 
-              peer-focus:opacity-100 
-              h-[1px] 
-              w-full 
-              border-neutral-800 
-              transition"
+                opacity-0 
+                peer-focus:opacity-100 
+                h-[1px] 
+                w-full 
+                border-neutral-800 
+                transition"
             />
             <div className="mt-4 flex flex-row justify-end">
               <Button
